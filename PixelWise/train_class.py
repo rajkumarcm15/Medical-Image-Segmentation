@@ -1,5 +1,5 @@
 import numpy as np
-import Data_3d as data
+import Data as data
 import evaluate_print as ev
 import threading
 import StatusSaver as log
@@ -78,9 +78,9 @@ def save_status(epoch, g_c, l_c):
 
 n_aug = 2
 n_patches = 1
-_x_ = 50
-_y_ = 50
-_z_ = 10
+_x_ = 150
+_y_ = 150
+_z_ = 1
 offset = 0.1
 scale = 1
 depth = 1
@@ -202,7 +202,7 @@ with graph.as_default():
         local_count = 0
         print("Graph created")
         err_rts = []
-        for i in range(50):
+        for i in range(10):
             log("status.txt", ["epoch: %d" % (i), "global count: %d" % (global_count), "local count: 0"])
 
             while True:
@@ -212,7 +212,7 @@ with graph.as_default():
                 if not (c1 and c2):
                     train_data = np.concatenate([train_data1, train_data2])
                     train_targ = np.concatenate([train_targ1, train_targ2])
-                    train_data = sess.run(tf.reshape(train_data, [-1, 1, _x_, _y_, _z_]))
+                    # train_data = sess.run(tf.reshape(train_data, [-1, 1, _x_, _y_, _z_]))
                     train_targ = sess.run(tf.reshape(train_targ, [-1, 1, 3, 1]))
 
                     bundle = zip(train_data, train_targ)

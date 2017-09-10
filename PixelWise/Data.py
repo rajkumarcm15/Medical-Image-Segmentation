@@ -63,10 +63,10 @@ class Data:
         self.numeric_targ = numeric_targ
         self.log = logging.getLogger()
         # self.get_next()
-        self.thread_start()
         self.x_rad = p_shape[0] / 2
         self.y_rad = p_shape[1] / 2
         self.z_rad = int(np.ceil(p_shape[2] * 1.0 / 2))
+        self.thread_start()
 
     # UPDATE THIS
     def get_next(self):
@@ -128,7 +128,7 @@ class Data:
             c = np.where(pos[:,1]+self.y_rad <= ny)
             d = np.where(pos[:,1]-self.y_rad >= 0)
         except:
-            print("Catch me")
+            print("Exception thrown at refine_pos")
         # e = np.where(pos[:,2]+self.z_rad <= nz)
         # f = np.where(pos[:,2]-self.z_rad >= 0)
 
@@ -294,7 +294,7 @@ class Data:
                             try:
                                 index = np.random.randint(0,len(neg_pos))
                             except Exception,e:
-                                print(str(e))
+                                print("Error thrown at negative sampling: ",str(e))
                             neg_pos = neg_pos[index]
                             z_max = nz
                             deviation = (neg_pos[2] + p_shape[2]) - nz
@@ -325,6 +325,8 @@ class Data:
             temp_lbl[2] = 1
 
         imset = np.concatenate(imset,axis=0)
+        _b_, _x_, _y_, _z_ = imset.shape
+        imset = np.reshape(imset, [_b_, 1, _x_, _y_, _z_])
         n_aug = 2
         lblset = np.tile(temp_lbl,[int(np.ceil(self.n_samples*1.0/2))+n_aug,1])
         lblset = np.concatenate([lblset,np.tile([0,0,1],[int(np.floor(self.n_samples*1.0/2)),1])],axis=0)
@@ -348,15 +350,15 @@ class Data:
             x_max = _os[0] + p_radius[0]
             y_min = _os[1] - p_radius[1]
             y_max = _os[1] + p_radius[1]
-            z_max = nz
-            deviation = (_os[2] + p_shape[2]) - nz
-            z_min = _os[2]
-            if x_max > 0:
-                z_max = _os[2] + p_shape[2] - deviation
-                z_min = _os[2] - deviation
-
+            # z_max = nz
+            # deviation = (_os[2] + p_shape[2]) - nz
+            # z_min = _os[2]
+            # if x_max > 0:
+            #     z_max = _os[2] + p_shape[2] - deviation
+            #     z_min = _os[2] - deviation
+            z_min,z_max = self.get_z_min_max(_os,p_shape)
             temp_img = img[x_min:x_max, y_min:y_max, z_min:z_max].astype('float64')
-            temp_img = np.reshape(temp_img,[x_max-x_min,y_max-y_min,z_max-z_min])
+            # temp_img = np.reshape(temp_img,[x_max-x_min,y_max-y_min,z_max-z_min])
             im_set.append(temp_img)
             del temp_img
         return im_set
@@ -400,7 +402,7 @@ class Data:
 # import tensorflow as tf
 # sess = tf.Session()
 # dir = '/Users/Rajkumar/ISO/CNN/Project/Data'
-# _data1 = Data(3,dir,[150,150,150],numeric_targ=True,n_samples=1,training=True)
+# _data1 = Data(3,dir,[150,150,110],numeric_targ=True,n_samples=1,training=True)
 # _data2 = Data(8,dir,[150,150,371],numeric_targ=True,n_samples=2,training=True)
 
 # train_data1, train_targ1, c1 = _data1.get_next()
@@ -415,10 +417,12 @@ class Data:
 # train_data2 = tf.nn.batch_normalization(train_data2,mew2,var2,0.1,1,1e-5)
 # train_data1,train_data2 = sess.run([train_data1,train_data2])
 # train_data1 = sess.run([train_data1])
-# for i in range(10):
-#     plt.figure()
-#     plt.title("Liver - 3")
-#     plt.imshow(train_data1[0,:,:,i*10],cmap="bone")
+#  for i in range(10):
+#    plt.figure()
+#    plt.title("Liver - 3")
+#    plt.imshow(train_data1[0,0,:,:,i*10],cmap="bone")
+# plt.figure()
+# plt.imshow(train_data1[0,0,:,:,0],cmap="bone")
 # plt.figure()
 # plt.title("Kidney - 8")
 # plt.imshow(train_data2[0,:,:,0],cmap="bone")
